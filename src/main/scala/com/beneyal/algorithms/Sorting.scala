@@ -1,97 +1,85 @@
 package com.beneyal.algorithms
 
-import scala.collection.mutable
+import com.beneyal.datastructures.Arrays.mergeSortedArrays
+
+import scala.annotation.tailrec
 
 object Sorting {
-  def bubbleSort(arr: Array[Int]): Array[Int] = {
-    val result = arr.clone()
-    for (_ <- result.indices) {
-      for (j <- 0 until result.length - 1) {
-        if (result(j) > result(j + 1)) {
-          val temp = result(j)
-          result(j) = result(j + 1)
-          result(j + 1) = temp
-        }
-      }
-    }
-    result
-  }
+  def bubbleSort(arr: Vector[Int]): Vector[Int] = {
+    @tailrec
+    def getMaxAndRest(arr: Vector[Int], i: Int, max: Int, rest: Vector[Int]): (Int, Vector[Int]) =
+      if (i == arr.length) (max, rest)
+      else if (arr(i) > max) getMaxAndRest(arr, i + 1, arr(i), rest :+ max)
+      else getMaxAndRest(arr, i + 1, max, rest :+ arr(i))
 
-  def selectionSort(arr: Array[Int]): Array[Int] = {
-    val result = arr.clone()
-    for (i <- result.indices) {
-      var minIndex = i
-      for (j <- i until result.length) {
-        if (result(j) < result(minIndex)) {
-          minIndex = j
-        }
-      }
-      val temp = result(i)
-      result(i) = result(minIndex)
-      result(minIndex) = temp
-    }
-    result
-  }
-
-  def insertionSort(arr: Array[Int]): Array[Int] = {
-    val result = mutable.ArrayBuffer.from(arr)
-    for (i <- result.indices) {
-      if (result(i) < result(0)) {
-        val x = result(i)
-        result.remove(i)
-        result.insert(0, x)
+    @tailrec
+    def loop(arr: Vector[Int], result: Vector[Int]): Vector[Int] =
+      if (arr.isEmpty) {
+        result
       } else {
-        for (j <- 1 until i) {
-          if (result(i) > result(j - 1) && result(i) < result(j)) {
-            val x = result(i)
-            result.remove(i)
-            result.insert(j, x)
-          }
-        }
+        val (max, rest) = getMaxAndRest(arr, 1, arr(0), Vector.empty)
+        loop(rest, max +: result)
       }
-    }
-    result.toArray
+
+    loop(arr, Vector.empty)
   }
 
-  def mergeSort(arr: Array[Int]): Array[Int] = {
-    def merge(left: Array[Int], right: Array[Int]): Array[Int] = {
-      val result    = Array.fill(left.length + right.length)(0)
-      var (i, j, k) = (0, 0, 0)
-      while (i < left.length && j < right.length) {
-        if (left(i) < right(j)) {
-          result(k) = left(i)
-          i += 1
-        } else {
-          result(k) = right(j)
-          j += 1
-        }
-        k += 1
-      }
-      while (i < left.length) {
-        result(k) = left(i)
-        i += 1
-        k += 1
-      }
-      while (j < right.length) {
-        result(k) = right(j)
-        j += 1
-        k += 1
-      }
-      result
-    }
+  def selectionSort(arr: Vector[Int]): Vector[Int] = {
+    @tailrec
+    def findMinIndex(arr: Vector[Int], i: Int, min: Int, minIndex: Int): Int =
+      if (i == arr.length) minIndex
+      else if (arr(i) < min) findMinIndex(arr, i + 1, arr(i), i)
+      else findMinIndex(arr, i + 1, min, minIndex)
 
-    def recur(arr: Array[Int]): Array[Int] =
+    @tailrec
+    def loop(arr: Vector[Int], result: Vector[Int]): Vector[Int] =
+      if (arr.isEmpty) {
+        result
+      } else {
+        val minIndex = findMinIndex(arr, 1, arr(0), 0)
+        loop(arr.patch(minIndex, Nil, 1), result :+ arr(minIndex))
+      }
+
+    loop(arr, Vector.empty)
+  }
+
+  def insertionSort(arr: Vector[Int]): Vector[Int] = {
+    @tailrec
+    def insert(elem: Int, sorted: Vector[Int], i: Int, result: Vector[Int]): Vector[Int] =
+      if (i == sorted.length) {
+        result :+ elem
+      } else if (elem < sorted(i)) {
+        (result :+ elem) ++ sorted.drop(i)
+      } else {
+        insert(elem, sorted, i + 1, result :+ sorted(i))
+      }
+
+    @tailrec
+    def loop(arr: Vector[Int], i: Int, sorted: Vector[Int]): Vector[Int] =
+      if (i == arr.length) {
+        sorted
+      } else if (i == 0) {
+        loop(arr, 1, Vector(arr(0)))
+      } else {
+        loop(arr, i + 1, insert(arr(i), sorted, 0, Vector.empty))
+      }
+
+    loop(arr, 0, Vector.empty)
+  }
+
+  def mergeSort(arr: Vector[Int]): Vector[Int] = {
+    def recur(arr: Vector[Int]): Vector[Int] =
       if (arr.length <= 1) {
         arr
       } else {
         val (left, right) = arr.splitAt(arr.length / 2)
-        merge(recur(left), recur(right))
+        mergeSortedArrays(recur(left), recur(right))
       }
 
     recur(arr)
   }
 
-  def quickSort(arr: Array[Int]): Array[Int] = {
+  def quickSort(arr: Vector[Int]): Vector[Int] = {
     if (arr.length <= 1) {
       arr
     } else {
@@ -104,11 +92,11 @@ object Sorting {
   }
 
   def main(args: Array[String]): Unit = {
-    val numbers = Array(99, 44, 6, 2, 1, 5, 63, 87, 283, 4, 0)
-    println(bubbleSort(numbers).mkString("Array(", ", ", ")"))
-    println(selectionSort(numbers).mkString("Array(", ", ", ")"))
-    println(insertionSort(numbers).mkString("Array(", ", ", ")"))
-    println(mergeSort(numbers).mkString("Array(", ", ", ")"))
-    println(quickSort(numbers).mkString("Array(", ", ", ")"))
+    val numbers = Vector(99, 44, 6, 2, 1, 5, 63, 87, 283, 4, 0)
+    println(bubbleSort(numbers).mkString("[", ", ", "]"))
+    println(selectionSort(numbers).mkString("[", ", ", "]"))
+    println(insertionSort(numbers).mkString("[", ", ", "]"))
+    println(mergeSort(numbers).mkString("[", ", ", "]"))
+    println(quickSort(numbers).mkString("[", ", ", "]"))
   }
 }

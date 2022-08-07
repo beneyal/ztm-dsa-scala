@@ -23,12 +23,16 @@ object Arrays {
         else loop(i, j + 1, result :+ b(j))
       } else if (i < a.length) {
         loop(i + 1, j, result :+ a(i))
-      } else if (j < a.length) {
+      } else if (j < b.length) {
         loop(i, j + 1, result :+ b(j))
       } else {
         result
       }
 
     loop(0, 0, Vector.empty)
+  }
+
+  def main(args: Array[String]): Unit = {
+    println(mergeSortedArrays(Vector(0, 3, 4, 31), Vector(4, 6, 30)))
   }
 }
