@@ -39,9 +39,16 @@ object LinkedLists {
         if (index == 0) tail
         else Node(value, tail.remove(index - 1))
 
-      override def reverse: LinkedList =
-        if (tail.isEmpty) this
-        else tail.reverse.append(value)
+      override def reverse: LinkedList = {
+        @tailrec
+        def loop(list: LinkedList, result: LinkedList): LinkedList =
+          list match {
+            case Empty             => result
+            case Node(value, tail) => loop(tail, result.prepend(value))
+          }
+
+        loop(this, LinkedList.empty)
+      }
 
       override def isEmpty: Boolean = false
 
@@ -60,6 +67,8 @@ object LinkedLists {
     def apply(xs: Int*): LinkedList =
       if (xs.isEmpty) Empty
       else Node(xs.head, apply(xs.tail: _*))
+
+    def empty: LinkedList = Empty
   }
 
   sealed trait DoublyLinkedList {
@@ -119,9 +128,16 @@ object LinkedLists {
         if (index == 0) next
         else new Node(value, prev, next.remove(index - 1))
 
-      override def reverse: DoublyLinkedList =
-        if (next.isEmpty) this
-        else next.reverse.append(value)
+      override def reverse: DoublyLinkedList = {
+        @tailrec
+        def loop(list: DoublyLinkedList, result: DoublyLinkedList): DoublyLinkedList =
+          list match {
+            case Empty      => result
+            case node: Node => loop(node.next, result.prepend(node.value))
+          }
+
+        loop(this, DoublyLinkedList.empty)
+      }
 
       override def isEmpty: Boolean = false
 
